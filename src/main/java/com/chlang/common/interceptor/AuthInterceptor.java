@@ -1,7 +1,12 @@
 package com.chlang.common.interceptor;
 
+import com.chlang.common.exception.PlatfromException;
+import com.chlang.common.helper.JwtHelper;
+import com.chlang.common.resp.ErrorCode;
+import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -14,19 +19,30 @@ import java.util.Enumeration;
  */
 public class AuthInterceptor implements HandlerInterceptor {
     Logger log = LoggerFactory.getLogger(AuthInterceptor.class);
+    @Autowired
+    private JwtHelper jwtHelper;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request,
+                             HttpServletResponse response, Object handler) throws Exception {
         log.info("--------进入拦截器--------");
         Enumeration<String> headerNames = request.getHeaderNames();
         while(headerNames.hasMoreElements()){
             String headName = headerNames.nextElement();
             log.info(headName + ":" + request.getHeader(headName));
         }
-//        String token = request.getHeader("Authorization");
-//        if(token == null){
-//
-//        }
+
+        String token = request.getHeader("Authorization");
+        //判断是否传入令牌
+        if(token == null){
+            throw new PlatfromException(ErrorCode.TOKEN_FAILED_ERROR,"无效的令牌");
+        }
+        //判断令牌是否合法
+        Claims claims = jwtHelper.verifyToken(token);
+
+        //从redis中获取用户信息
+
+        //将用户信息存储到request的attr中
 
         return true;
     }

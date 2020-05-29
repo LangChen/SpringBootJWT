@@ -12,6 +12,7 @@
 	<artifactId>springbootjwt</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>SpringBootJWT</name>
+	<packaging>jar</packaging>
 	<description>Demo project for Spring Boot JWT</description>
 
 	<properties>

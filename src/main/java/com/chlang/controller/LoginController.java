@@ -23,12 +23,6 @@ public class LoginController {
             token = jwtHelper.createToken(userAccount);
         }
 
-        try {
-            jwtHelper.verifyToken(token);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         Map<String,Object> result = new HashMap<>();
         result.put("code",0);
         result.put("data",token);

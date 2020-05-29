@@ -1,0 +1,6 @@
+server:
+    port: 8080
+
+jwt:
+  secret: "#key_74852_?_1231#12_34!!765A312"
+  expiredTime: 7200

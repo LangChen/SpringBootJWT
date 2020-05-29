@@ -1,27 +1,34 @@
 package com.chlang.common.helper;
 
+import com.chlang.common.exception.PlatfromException;
+import com.chlang.common.resp.ErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
-@Service
+@Component
 public class JwtHelper {
+    Logger logger = LoggerFactory.getLogger(JwtHelper.class);
 
-//    @Value("${jwt.key}")
-//    private String key;
+    /**
+     * 需要32个字节的加密字符串
+     */
+    @Value("${jwt.secret}")
+    private String secret;
+    @Value("${jwt.expiredTime}")
+    private Long expiredTime;
 
     /**
      * 创建Token
@@ -31,13 +38,14 @@ public class JwtHelper {
     public String createToken(String userAccount){
         //设置过期时间，如果使用redis，可以去掉，
         Map<String,Object> claims = new HashMap<>();
-        claims.put("userAccount","test");  //setSubject
+        claims.put("userAccount",userAccount);
         Date now = new Date();
-        Date exp = new Date(now.getTime()+10000);
+        //设置超时之间为
+        Date exp = new Date(now.getTime()+expiredTime);
 
         String token = Jwts.builder()
                 .setClaims(claims)
-                .setId("123")
+                .setId(userAccount)
                 .setExpiration(exp)
                 .signWith(getKey())
                 .compact();
@@ -52,18 +60,20 @@ public class JwtHelper {
         Claims claims = null;
         try {
             claims = Jwts.parserBuilder().setSigningKey(getKey()).build().parseClaimsJws(token).getBody();
+            logger.info(claims.toString());
             //OK, we can trust this JWT
         } catch (JwtException e) {
             //don't trust the JWT!
-            throw e;
+            throw new PlatfromException(ErrorCode.TOKEN_FAILED_ERROR,"无效的令牌");
         }
         return claims;
     }
 
+    /**
+     * 获取加解密的key
+     * @return
+     */
     private SecretKey getKey(){
-        //32个字节的密钥
-        String secretString = "#key_74852_?_1231#12134567654312";
-        return Keys.hmacShaKeyFor(secretString.getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
-
 }
