@@ -6,7 +6,8 @@ import com.chlang.common.resp.ErrorCode;
 import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -19,8 +20,6 @@ import java.util.Enumeration;
  */
 public class AuthInterceptor implements HandlerInterceptor {
     Logger log = LoggerFactory.getLogger(AuthInterceptor.class);
-    @Autowired
-    private JwtHelper jwtHelper;
 
     @Override
     public boolean preHandle(HttpServletRequest request,
@@ -37,6 +36,8 @@ public class AuthInterceptor implements HandlerInterceptor {
         if(token == null){
             throw new PlatfromException(ErrorCode.TOKEN_FAILED_ERROR,"无效的令牌");
         }
+        BeanFactory factory = WebApplicationContextUtils.getRequiredWebApplicationContext(request.getServletContext());
+        JwtHelper jwtHelper = (JwtHelper) factory.getBean("jwtHelper");
         //判断令牌是否合法
         Claims claims = jwtHelper.verifyToken(token);
 
